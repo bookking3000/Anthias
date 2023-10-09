@@ -4,6 +4,7 @@
 #include <QStandardPaths>
 #include <QEventLoop>
 #include <QTimer>
+#include <QMap>
 
 #include "view.h"
 
@@ -22,8 +23,39 @@ View::View(QWidget* parent) : QWebEngineView(parent)
 void View::loadPage(const QString &uri)
 {
     qDebug() << "Type: Webpage";
-    stop();
-    load(QUrl(uri));
+
+    // Check if the page is in the cache
+    if (pageCache.contains(uri)) {
+        // Page is in the cache, load it from there
+        setHtml(pageCache.value(uri));
+    } else {
+        // Page is not in the cache, load it from the internet
+        stop();
+        load(QUrl(uri));
+
+        // Cache the page after it's loaded
+        connect(this, &QWebEngineView::loadFinished, this, [this, uri](bool success) {
+            if (success) {
+                // Cache the HTML content of the loaded page
+                cachePage(uri, page()->toHtml());
+            }
+        });
+    }
+}
+
+void View::cachePage(const QString &uri, const QString &htmlContent)
+{
+    // Cache the HTML content for the given URI
+    pageCache.insert(uri, htmlContent);
+}
+
+// Declare and initialize the pageCache
+QMap<QString, QString> View::pageCache;
+
+// You can also add a method to clear the cache if needed
+void View::clearCache()
+{
+    pageCache.clear();
 }
 
 void View::loadImage(const QString &preUri)

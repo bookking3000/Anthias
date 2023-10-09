@@ -4,6 +4,7 @@
 #include <QWebEnginePage>
 #include <QWidget>
 #include <QEventLoop>
+#include <QMap>
 
 class View : public QWebEngineView
 {
@@ -15,10 +16,15 @@ public:
     void loadPage(const QString &uri);
     void loadImage(const QString &uri);
 
+    void cachePage(const QString &uri, const QString &htmlContent);
+    void clearCache();
+
 private slots:
     void handleAuthRequest(QNetworkReply*, QAuthenticator*);
 
 private:
     QWebEnginePage* pre_loader;
     QEventLoop pre_loader_loop;
+
+    static QMap<QString, QString> pageCache;
 };
